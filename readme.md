@@ -1,0 +1,1 @@
+Basic platformer playground to practice with the awesome [raylib](https://www.raylib.com/) and C.
