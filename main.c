@@ -5,11 +5,27 @@
 int main() {
     int screenWidth = 800;
     int screenHeight = 450;
+
+    EntityNode *entities = 0;
+
     Player player = { 10, 10, 0, 0, 10, 10, DARKGRAY };
+    Entity playerEntity = { &player, PLAYER };
+
     Rectangle ground = { 0, 400, 800, 50 };
+    Entity groundEntity = { &ground, RECTANGLE };
+
     Rectangle platform = { 0, 350, 300, 20 };
+    Entity platformEntity = { &platform, RECTANGLE };
+
     Rectangle platform2 = { 600, 380, 100, 20 };
-    World world = { &player, &ground, &platform, &platform2 };
+    Entity platform2Entity = { &platform2, RECTANGLE };
+
+    AddEntity(&entities, &playerEntity);
+    AddEntity(&entities, &groundEntity);
+    AddEntity(&entities, &platformEntity);
+    AddEntity(&entities, &platform2Entity);
+
+    World world = { entities };
 
     InitWindow(screenWidth, screenHeight, "platray");
     SetTargetFPS(60);
@@ -28,11 +44,48 @@ void GameLoop(World world, float deltaTime) {
     Draw(world);
 }
 
+// TODO: Optimize...
 void Update(World world, float deltaTime) {
-    UpdatePlayer(world.player, deltaTime);
-    HandleCollision(world.player, world.ground);
-    HandleCollision(world.player, world.platform);
-    HandleCollision(world.player, world.platform2);
+    EntityNode *currNode = world.entities;
+
+    // First pass to calculate new positions
+    while (currNode) {
+        Entity *currEntity = currNode->entity;
+
+        switch (currEntity->kind) {
+            case PLAYER:
+                UpdatePlayer(currEntity->object, deltaTime);
+                break;
+            case RECTANGLE:
+                break;
+        }
+
+        currNode = currNode->next;
+    }
+
+    currNode = world.entities;
+
+    // Second pass to handle collisions
+    while (currNode) {
+        Entity *currEntity = currNode->entity;
+        EntityNode *currObstacle = world.entities;
+
+        switch (currEntity->kind) {
+            case PLAYER:
+                while (currObstacle) {
+                    if (currObstacle->entity->kind != PLAYER) {
+                        HandleCollision(currEntity->object, currObstacle->entity->object);
+                    }
+
+                    currObstacle = currObstacle->next;
+                }
+                break;
+            case RECTANGLE:
+                break;
+        }
+
+        currNode = currNode->next;
+    }
 }
 
 void HandleCollision(Player *player, Rectangle *collider) {
@@ -49,14 +102,27 @@ void Draw(World world) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-    DrawPlayer(*world.player);
-    DrawRectangleRec(*world.ground, DARKGREEN);
-    DrawRectangleRec(*world.platform, DARKGREEN);
-    DrawRectangleRec(*world.platform2, DARKGREEN);
+    EntityNode *currNode = world.entities;
+
+    // Third pass to draw
+    while (currNode) {
+        Entity *currEntity = currNode->entity;
+
+        switch (currEntity->kind) {
+            case PLAYER:
+                DrawPlayer(*(Player *)currEntity->object);
+                break;
+            case RECTANGLE:
+                DrawRectangleRec(*(Rectangle *)currEntity->object, DARKGREEN);
+                break;
+        }
+
+        currNode = currNode->next;
+    }
 
     if (DEBUG) {
         DrawFPS(10, 10);
-        ShowPlayerInfo(*world.player);
+        ShowPlayerInfo(*GetPlayer(world.entities));
     }
 
     EndDrawing();

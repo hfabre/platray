@@ -2,18 +2,12 @@
 #define PLATRAY_GAME_H
 
 #include "player.h"
+#include "world.h"
 
 #define DEBUG 1
 
 #define MAX(x,y) (((x) < (y)) ? (y) : (x))
 #define MIN(x,y) (((x) > (y)) ? (y) : (x))
-
-typedef struct World {
-    Player *player;
-    Rectangle *ground;
-    Rectangle *platform;
-    Rectangle *platform2;
-} World;
 
 // game.c
 bool IsColliding(Rectangle origin, Rectangle other);

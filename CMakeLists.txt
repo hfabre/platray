@@ -32,7 +32,7 @@ endif()
 
 # This is the main part:
 
-add_executable(${PROJECT_NAME} main.c player.c player.h game.h game.c direction.h)
+add_executable(${PROJECT_NAME} main.c player.c player.h game.h game.c direction.h entity_kind.h world.c world.h)
 #set(raylib_VERBOSE 1)
 target_link_libraries(${PROJECT_NAME} raylib)
 
